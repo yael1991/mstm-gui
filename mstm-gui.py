@@ -11,6 +11,9 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4 import uic
 
+#Matplotlib libraries
+import matplotlib.pyplot as plt
+
 class GuiWindow(QtGui.QMainWindow):
     
     params = ParameterClass('msinput.inp')
@@ -21,8 +24,6 @@ class GuiWindow(QtGui.QMainWindow):
         self.ui.spinEndLambda.setValue(self.params.maxLambda)
         self.ui.spinNumSamples.setValue(self.params.nSamples)
         self.ui.spinNumSpheres.setValue(int(self.params['number_spheres']))
-        #self.ui.spinAlpha.setValue(float(self.params['incident_azimuth_angle_deg']))
-        #self.ui.spinBeta.setValue(float(self.params['incident_polar_angle_deg']))
         
         fi = QtCore.QFileInfo(self.params.matFilename)
         self.ui.txtMaterial.setText(fi.baseName())
@@ -37,6 +38,12 @@ class GuiWindow(QtGui.QMainWindow):
         self.params.nSpheres = self.ui.spinNumSpheres.value()
         self.params['incident_azimuth_angle_deg'] = self.ui.spinAlpha.value()
         self.params['incident_polar_angle_deg'] = self.ui.spinBeta.value()
+        self.params.showOutput = self.ui.chkShowOutput.isChecked()
+        self.params.inWater = self.ui.chkInWater.isChecked()
+        if self.ui.chkRandomOrientation.isChecked():
+            self.params['fixed_or_random_orientation'] = 1
+        else:
+            self.params['fixed_or_random_orientation'] = 0
         
       
         #global parameters for dimers
@@ -45,7 +52,26 @@ class GuiWindow(QtGui.QMainWindow):
         return self.params
     
     def simulate(self):
-        self.results = RunSimulation(self.params)
+        self.results = RunSimulation()
+        
+        #plot results of interest
+        wl = self.results['lambda']
+        
+        if int(self.params['fixed_or_random_orientation']) == 0:
+            unpol = self.results['extinction_unpolarized']
+            para = self.results['extinction_parallel']
+            perp = self.results['extinction_perpendicular']
+            plt.plot(wl, unpol, 'r-', label='unpolarized')
+            plt.plot(wl, para, 'g-', label='parallel')
+            plt.plot(wl, perp, 'b-', label='perpendicular')
+        else:
+            total = self.results['extinction_total']
+            plt.plot(wl, total, 'r-', label='extinction')
+        
+        plt.legend(loc = 'upper left')
+        plt.ylabel('Extinction')
+        plt.xlabel('Wavelength (um)')
+        plt.show()
         
     def saveresults(self):
         fileName = QtGui.QFileDialog.getSaveFileName(w, 'Save Spectral Results', '', 'DAT data files (*.dat)')        
@@ -98,7 +124,12 @@ class ProgressBar(QtGui.QWidget):
         self.progressbar.setValue(val)
         
 
-def RunSimulation(parameters):
+def RunSimulation():
+    
+    #set the parameters based on the UI
+    parameters = w.getParams()
+    
+    
     
     #load the material
     material = MaterialClass(parameters.matFilename)
@@ -106,17 +137,14 @@ def RunSimulation(parameters):
     #add water if necessary
     if parameters.inWater:
         material.addSolution(1.33)
-    
-    #set the parameters based on the UI
-    parameters = w.getParams()
-    
+   
     #range for simulation
     minLambda = parameters.minLambda
     maxLambda = parameters.maxLambda
     nSamples = parameters.nSamples
 
     #store the simulation results
-    results = SimParserClass()
+    results = SimParserClass(parameters)
     
     #create a progress bar
     pbar = ProgressBar(total=nSamples)
@@ -136,6 +164,8 @@ def RunSimulation(parameters):
         parameters['imag_ref_index_scale_factor'] = n.imag
         parameters['length_scale_factor'] = (2.0 * 3.14159)/l
         parameters['scattering_plane_angle_deg'] = gamma;
+        #parameters['fixed_or_random_orientation'] = 0
+        #print(parameters['fixed_or_random_orientation'])
         
 
         parameters.clearSpheres()
@@ -147,25 +177,17 @@ def RunSimulation(parameters):
 
         #run the binary
         from subprocess import call
-        devnull = open('/dev/null', 'w')
-        call(["./ms-tmatrix",  "scriptParams.inp"], stdout=devnull)
+        if parameters.showOutput:
+            call(["./ms-tmatrix",  "scriptParams.inp"])
+        else:            
+            devnull = open('/dev/null', 'w')
+            call(["./ms-tmatrix",  "scriptParams.inp"], stdout=devnull)
 
         results.parseSimFile(l, 'test.dat')
 
         #update the progress bar
         pbar.update_progressbar(i+1)
-
-
-    #plot results of interest
-    import matplotlib.pyplot as plt
-    wl = results['lambda']
-    unpol = results['extinction_unpolarized']
-    para = results['extinction_parallel']
-    perp = results['extinction_perpendicular']
-    plt.plot(wl, unpol, 'r-', wl, para, 'g-', wl, perp, 'b-')
-    plt.ylabel('Extinction')
-    plt.xlabel('Wavelength (um)')
-    plt.show()
+        print(i+1)
     
     #return the results
     return results;
@@ -174,12 +196,6 @@ def RunSimulation(parameters):
         
 
 
-
-#input template file name
-inpFilename = 'msinput.inp'
-
-#output spectral file name
-outFilename = 'spectralOut.txt'
 
 #sphere radii
 a = 0.025
@@ -192,17 +208,6 @@ gamma = 0
 
 #results stored for each spectral sample
 resultLabels = {'lambda', 'extinction_unpolarized', 'extinction_parallel', 'extinction_perpendicular'}
-
-
-
-
-
-outFile = open(outFilename, 'w')
-
-#number of characters in the progress bar
-pb_max = 50
-
-
 
 #create a Qt window
 app = QtGui.QApplication(sys.argv)

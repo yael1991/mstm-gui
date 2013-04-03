@@ -93,6 +93,9 @@
        <height>22</height>
       </rect>
      </property>
+     <property name="maximum">
+      <number>9999</number>
+     </property>
     </widget>
     <widget class="QLabel" name="label_3">
      <property name="geometry">
@@ -153,6 +156,19 @@
      </property>
      <property name="singleStep">
       <double>0.100000000000000</double>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkRandomOrientation">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>60</y>
+       <width>161</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Random Orientation</string>
      </property>
     </widget>
    </widget>
@@ -319,6 +335,32 @@
       <double>0.100000000000000</double>
      </property>
     </widget>
+   </widget>
+   <widget class="QCheckBox" name="chkShowOutput">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>120</y>
+      <width>131</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>MS-TM output</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chkInWater">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>20</y>
+      <width>83</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>in water</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

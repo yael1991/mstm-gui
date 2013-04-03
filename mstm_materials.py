@@ -15,9 +15,10 @@ class MaterialClass:
     materialList = []
 
     def __init__(self, fileName=""):
-        if fileName == "":
-            materialList = []
-        else:
+        
+        self.materialList = []
+        
+        if fileName != "":
             self.loadFile(fileName)
 
     #when the material is cast to a string, create the list of refractive indices

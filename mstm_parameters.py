@@ -9,6 +9,9 @@ class ParameterClass:
     matFilename = 'etaSilver.txt'
     #are the sphere's in water?
     inWater = False
+    
+    #show console output from the MS-TM FORTRAN program
+    showOutput = False
 
     paramDict = {}
     sphereList = []
