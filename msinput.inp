@@ -63,11 +63,11 @@ calculate_near_field
 near_field_plane_coord
 1
 near_field_plane_position
-0.d0
+0.0
 near_field_plane_vertices
--20.d0,-20.d0,20.d0,20.d0
+-20.0,-20.0,20.0,20.0
 spacial_step_size
-.2d0
+.20
 polarization_angle_deg
 0.d0
 near_field_output_file

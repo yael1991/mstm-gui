@@ -13,6 +13,8 @@ from PyQt4 import uic
 
 #Matplotlib libraries
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+from pylab import *
 
 class GuiWindow(QtGui.QMainWindow):
     
@@ -22,37 +24,64 @@ class GuiWindow(QtGui.QMainWindow):
         #update the Gui based on values in the parameters structure
         self.ui.spinStartLambda.setValue(self.params.minLambda)
         self.ui.spinEndLambda.setValue(self.params.maxLambda)
+        self.ui.spinNearFieldLambda.setValue(self.params.snapshotLambda)
         self.ui.spinNumSamples.setValue(self.params.nSamples)
         self.ui.spinNumSpheres.setValue(int(self.params['number_spheres']))
+        #near field stuff
+        self.ui.cmbPlaneSlice.setCurrentIndex(int(self.params['near_field_plane_coord']) - 1)
+        verts = self.params['near_field_plane_vertices']
+        self.ui.spinNearFieldWidth.setValue(verts[2] - verts[0])
+        self.ui.spinNearFieldHeight.setValue(verts[3] - verts[1])
+        self.ui.spinNearFieldSteps.setValue(self.params.nSteps)
         
         fi = QtCore.QFileInfo(self.params.matFilename)
         self.ui.txtMaterial.setText(fi.baseName())
         
         #update global parameters for the dimer simulation
-        self.ui.spinSpacing.setValue(d)
+        self.ui.spinSpacing.setValue(self.params.d)
+        self.ui.spinRadius.setValue(self.params.a)
         
     def getParams(self):
         self.params.minLambda = self.ui.spinStartLambda.value()
         self.params.maxLambda = self.ui.spinEndLambda.value()
+        self.params.snapshotLambda = self.ui.spinNearFieldLambda.value()
         self.params.nSamples = self.ui.spinNumSamples.value()
         self.params.nSpheres = self.ui.spinNumSpheres.value()
-        self.params['incident_azimuth_angle_deg'] = self.ui.spinAlpha.value()
-        self.params['incident_polar_angle_deg'] = self.ui.spinBeta.value()
-        self.params.showOutput = self.ui.chkShowOutput.isChecked()
-        self.params.inWater = self.ui.chkInWater.isChecked()
+        
+        #incident light properties
         if self.ui.chkRandomOrientation.isChecked():
             self.params['fixed_or_random_orientation'] = 1
         else:
             self.params['fixed_or_random_orientation'] = 0
+        self.params['incident_azimuth_angle_deg'] = self.ui.spinAlpha.value()
+        self.params['incident_polar_angle_deg'] = self.ui.spinBeta.value()
+        self.params['polarization_angle_deg'] = self.ui.spinGamma.value()
         
+        self.params.showOutput = self.ui.chkShowOutput.isChecked()
+        
+        self.params.inWater = self.ui.chkInWater.isChecked()
+        
+            
+        #near field
+        if self.ui.chkNearField.isChecked():
+            self.params['calculate_near_field'] = 1
+        else:
+            self.params['calculate_near_field'] = 0
+        self.params['near_field_plane_coord'] = self.ui.cmbPlaneSlice.currentIndex() + 1
+        width = (self.ui.spinNearFieldWidth.value()/2)
+        height = (self.ui.spinNearFieldHeight.value()/2)
+        self.params['near_field_plane_vertices'] = [-width, -height, width, height]
+        dx = self.ui.spinNearFieldWidth.value() / (self.ui.spinNearFieldSteps.value() - 1)
+        self.params['spacial_step_size'] = dx
       
         #global parameters for dimers
-        d = self.ui.spinSpacing.value()
-        
+        self.params.d = self.ui.spinSpacing.value()
+        self.params.a = self.ui.spinRadius.value()
+       
         return self.params
     
     def simulate(self):
-        self.results = RunSimulation()
+        self.results = RunSimulation(True)
         
         #plot results of interest
         wl = self.results['lambda']
@@ -67,11 +96,57 @@ class GuiWindow(QtGui.QMainWindow):
         else:
             total = self.results['extinction_total']
             plt.plot(wl, total, 'r-', label='extinction')
+            
+        #plot the near field maximum values if available
+        
+        if self.params['calculate_near_field']:
+            maxima = self.results.maxNearField
+            print(len(wl))
+            print(len(maxima))
+            plt.plot(wl, maxima)
+        
+        
         
         plt.legend(loc = 'upper left')
         plt.ylabel('Extinction')
         plt.xlabel('Wavelength (um)')
         plt.show()
+        
+    def func3(self, x,y):
+            return (1- x/2 + x**5 + y**3)*exp(-x**2-y**2)
+            
+    def snapshot(self):
+    
+        self.results = RunSimulation(False)
+        
+        if self.params['calculate_near_field']:
+            #verts = self.params['near_field_plane_vertices']
+            #dx = (verts[2] - verts[0])/(self.params.nSteps)
+            #x = arange(verts[0], verts[2], dx)
+            #print(len(x))
+            #y = arange(verts[1], verts[3], dx)
+            #X, Y = meshgrid(x, y)
+            E = array(self.results.gridNearField)
+            #pcolor(X, Y, E, cmap=cm.RdBu)
+            #colorbar()
+            #axis([verts[0], verts[2], verts[1], verts[3]])
+            
+            pcolor(E, cmap=cm.RdBu)
+            colorbar()          
+        
+        # make these smaller to increase the resolution
+        #dx, dy = 0.05, 0.05
+
+        #x = arange(-3.0, 3.0001, dx)
+        #y = arange(-3.0, 3.0001, dy)
+        #X,Y = meshgrid(x, y)
+
+        #Z = self.func3(X, Y)
+        #pcolor(X, Y, Z, cmap=cm.RdBu, vmax=abs(Z).max(), vmin=-abs(Z).max())
+        #colorbar()
+        #axis([-3,3,-3,3])
+
+        show()
         
     def saveresults(self):
         fileName = QtGui.QFileDialog.getSaveFileName(w, 'Save Spectral Results', '', 'DAT data files (*.dat)')        
@@ -85,6 +160,10 @@ class GuiWindow(QtGui.QMainWindow):
             
             fi = QtCore.QFileInfo(fileName)
             self.ui.txtMaterial.setText(fi.baseName())
+            
+    def spherenum(self, i):
+        self.ui.tblSpheres.setRowCount(i)
+        print(i)
         
     def __init__(self):
         QtGui.QWidget.__init__(self)        
@@ -100,10 +179,13 @@ class GuiWindow(QtGui.QMainWindow):
         #display the UI
         self.ui.show()
         
-        #simulation button
+        #controls
         self.connect(self.ui.btnSimulate, QtCore.SIGNAL("clicked()"), self.simulate)
+        self.connect(self.ui.btnEvaluateNearField, QtCore.SIGNAL("clicked()"), self.snapshot)
         self.connect(self.ui.mnuSaveResults, QtCore.SIGNAL("triggered()"), self.saveresults)
         self.connect(self.ui.mnuLoadMaterial, QtCore.SIGNAL("triggered()"), self.loadmaterial)
+        self.connect(self.ui.spinNumSpheres, QtCore.SIGNAL("valueChanged(int)"), self.spherenum)
+
 
 class ProgressBar(QtGui.QWidget):
     def __init__(self, parent=None, total=20):
@@ -124,7 +206,7 @@ class ProgressBar(QtGui.QWidget):
         self.progressbar.setValue(val)
         
 
-def RunSimulation():
+def RunSimulation(spectralSim = True):
     
     #set the parameters based on the UI
     parameters = w.getParams()
@@ -138,10 +220,15 @@ def RunSimulation():
     if parameters.inWater:
         material.addSolution(1.33)
    
-    #range for simulation
-    minLambda = parameters.minLambda
-    maxLambda = parameters.maxLambda
-    nSamples = parameters.nSamples
+    #for a spectral simulation, set the range and number of samples
+    if spectralSim:
+        minLambda = parameters.minLambda
+        maxLambda = parameters.maxLambda
+        nSamples = parameters.nSamples
+    else:
+        minLambda = parameters.snapshotLambda
+        maxLambda = parameters.snapshotLambda
+        nSamples = 1
 
     #store the simulation results
     results = SimParserClass(parameters)
@@ -153,7 +240,10 @@ def RunSimulation():
     #for each wavelength in the material
     for i in range(nSamples):
 
-        l = minLambda + i*(maxLambda - minLambda)/(nSamples - 1)
+        if i == 0:
+            l = minLambda
+        else:
+            l = minLambda + i*(maxLambda - minLambda)/(nSamples - 1)
         
         
 
@@ -164,16 +254,16 @@ def RunSimulation():
         parameters['imag_ref_index_scale_factor'] = n.imag
         parameters['length_scale_factor'] = (2.0 * 3.14159)/l
         parameters['scattering_plane_angle_deg'] = gamma;
-        #parameters['fixed_or_random_orientation'] = 0
-        #print(parameters['fixed_or_random_orientation'])
-        
+        parameters['near_field_output_data'] = 0
 
+        a = parameters.a;
+        d = parameters.d;
         parameters.clearSpheres()
         parameters.addSphere(a, -(d + 2*a)/2, 0, 0)
         parameters.addSphere(a, (d + 2*a)/2, 0, 0)
 
         #save the scripted input file
-        parameters.saveFile('scriptParams.inp')
+        parameters.saveFile(l, 'scriptParams.inp')
 
         #run the binary
         from subprocess import call
@@ -183,11 +273,15 @@ def RunSimulation():
             devnull = open('/dev/null', 'w')
             call(["./ms-tmatrix",  "scriptParams.inp"], stdout=devnull)
 
+        #parse the simulation results
         results.parseSimFile(l, 'test.dat')
+        
+        if parameters['calculate_near_field']:
+            results.parseNearField('nf-temp.dat')
+        
 
         #update the progress bar
         pbar.update_progressbar(i+1)
-        print(i+1)
     
     #return the results
     return results;
@@ -197,10 +291,7 @@ def RunSimulation():
 
 
 
-#sphere radii
-a = 0.025
-#distance between spheres
-d = 0.002
+
 #incident light directions
 alpha = 0
 beta = 0
