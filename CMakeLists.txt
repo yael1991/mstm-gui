@@ -27,6 +27,8 @@ configure_file(cyl3000fvp5.pos ${CMAKE_CURRENT_BINARY_DIR}/cyl3000fvp5.pos @ONLY
 configure_file(cylslab3000.pos ${CMAKE_CURRENT_BINARY_DIR}/cylslab3000.pos @ONLY)
 configure_file(etaGold.txt ${CMAKE_CURRENT_BINARY_DIR}/etaGold.txt @ONLY)
 configure_file(etaSilver.txt ${CMAKE_CURRENT_BINARY_DIR}/etaSilver.txt @ONLY)
+configure_file(etaSilverAnalytic.txt ${CMAKE_CURRENT_BINARY_DIR}/etaSilverAnalytic.txt @ONLY)
+configure_file(etaSilverPalik.txt ${CMAKE_CURRENT_BINARY_DIR}/etaSilverPalik.txt @ONLY)
 configure_file(mstm_guiwindow.ui ${CMAKE_CURRENT_BINARY_DIR}/mstm_guiwindow.ui @ONLY)
 
 

@@ -82,7 +82,7 @@ class SimParserClass:
                 self.gridNearField[y].append(values[2])
                 
         E = array(self.gridNearField)
-        self.maxNearField.append(pow(E.max(), 2))
+        self.maxNearField.append(abs(E).max())
                
 
     def saveFile(self, fileName):

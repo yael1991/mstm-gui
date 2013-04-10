@@ -651,6 +651,12 @@
        <height>22</height>
       </rect>
      </property>
+     <property name="decimals">
+      <number>3</number>
+     </property>
+     <property name="singleStep">
+      <double>0.001000000000000</double>
+     </property>
     </widget>
     <widget class="QLabel" name="label_11">
      <property name="geometry">
@@ -679,7 +685,7 @@
      </rect>
     </property>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>89</number>
+     <number>80</number>
     </attribute>
     <attribute name="verticalHeaderDefaultSectionSize">
      <number>30</number>
@@ -691,7 +697,7 @@
     </column>
     <column>
      <property name="text">
-      <string>pX</string>
+      <string>x</string>
      </property>
     </column>
     <column>

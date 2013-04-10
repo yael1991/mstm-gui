@@ -80,11 +80,11 @@ class MaterialClass:
         #open the real refractive index file
         irFID = open(fileName, 'r')
         #read the first line to get the units (wavelength (um) or wavenumber (cm^2))
-        lightUnits = irFID.readline().split('\t', 1)[0]
+        lightUnits = irFID.readline().split()[0]
 
         #load the material
         for line in irFID:
-            l, n, k = map(float, line.split("\t"))
+            l, n, k = map(float, line.split())
 
             #if units are in wavenumber, convert to wavelength
             if lightUnits == "nu":
