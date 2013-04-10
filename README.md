@@ -1,4 +1,7 @@
-This software is designed to be used with CMake, so we recommend using it to build the application.
+This software provides a Python-based GUI for the parallel Multi-Sphere T-Matrix software proposed by Dr. Daniel Mackowski and Dr. Michael Mishchenko in:
+Mackowski and Mishchenko, "A multiple sphere T-matrix Fortran code for use on parallel computer clusters," Journal of Quantitative Spectroscopy and Radiative Transfer, 112: 2182-2192, 2011.
+
+This software is designed to be used with CMake, so we recommend using it to build the application.  The original Fortran code and instructions are available at http://eng.auburn.edu/users/dmckwski/scatcodes/.  After building, you can run the GUI python script (mstm-gui.py).
 
 The MSTM application requires a Fortran compiler and OpenMP.
 
