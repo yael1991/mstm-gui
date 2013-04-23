@@ -98,6 +98,7 @@ class GuiWindow(QtGui.QMainWindow):
 		#plot results of interest
 		wl = self.results['lambda']
 		
+		#for a fixed orientation
 		if int(self.params['fixed_or_random_orientation']) == 0:
 			unpol = self.results['extinction_unpolarized']
 			para = self.results['extinction_parallel']
@@ -132,33 +133,19 @@ class GuiWindow(QtGui.QMainWindow):
 		self.results = RunSimulation(False)
 		
 		if self.params['calculate_near_field']:
-			#verts = self.params['near_field_plane_vertices']
-			#dx = (verts[2] - verts[0])/(self.params.nSteps)
-			#x = arange(verts[0], verts[2], dx)
-			#print(len(x))
-			#y = arange(verts[1], verts[3], dx)
-			#X, Y = meshgrid(x, y)
+
 			E = array(self.results.gridNearField)
-			#pcolor(X, Y, E, cmap=cm.RdBu)
-			#colorbar()
-			#axis([verts[0], verts[2], verts[1], verts[3]])
+
 			
 			pcolor(E, cmap=cm.RdBu)
 			colorbar()
+			
+			#compute the maximum field magnitude in the plane
 			print("Maximum enhancement: " + str(abs(E).max()))
+			
+			#get the scattering amplitude matrix
+			print(self.results.scatAmpMatrix[0])
 		
-		# make these smaller to increase the resolution
-		#dx, dy = 0.05, 0.05
-
-		#x = arange(-3.0, 3.0001, dx)
-		#y = arange(-3.0, 3.0001, dy)
-		#X,Y = meshgrid(x, y)
-
-		#Z = self.func3(X, Y)
-		#pcolor(X, Y, Z, cmap=cm.RdBu, vmax=abs(Z).max(), vmin=-abs(Z).max())
-		#colorbar()
-		#axis([-3,3,-3,3])
-
 		show()
 		
 	def saveresults(self):
@@ -184,12 +171,12 @@ class GuiWindow(QtGui.QMainWindow):
 		a = self.ui.spinRadius.value()
 		
 		self.ui.tblSpheres.setItem(0, 0, QtGui.QTableWidgetItem(str(a)))
-		self.ui.tblSpheres.setItem(0, 1, QtGui.QTableWidgetItem(str(-(d + 2*a)/2)))
+		self.ui.tblSpheres.setItem(0, 1, QtGui.QTableWidgetItem(str(-(d/2.0 + a))))
 		self.ui.tblSpheres.setItem(0, 2, QtGui.QTableWidgetItem(str(0.0)))
 		self.ui.tblSpheres.setItem(0, 3, QtGui.QTableWidgetItem(str(0.0)))
 		
 		self.ui.tblSpheres.setItem(1, 0, QtGui.QTableWidgetItem(str(a)))
-		self.ui.tblSpheres.setItem(1, 1, QtGui.QTableWidgetItem(str((d + 2*a)/2)))
+		self.ui.tblSpheres.setItem(1, 1, QtGui.QTableWidgetItem(str((d/2.0 + a))))
 		self.ui.tblSpheres.setItem(1, 2, QtGui.QTableWidgetItem(str(0.0)))
 		self.ui.tblSpheres.setItem(1, 3, QtGui.QTableWidgetItem(str(0.0)))
 		
@@ -315,6 +302,9 @@ def RunSimulation(spectralSim = True):
 		
 		if parameters['calculate_near_field']:
 			results.parseNearField('nf-temp.dat')
+			
+		#get the scattering amplitude matrix
+		results.calcScatteringAmp()
 		
 
 		#update the progress bar

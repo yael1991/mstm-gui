@@ -348,31 +348,61 @@
             write(1,'('' perpendicular total ext, abs, scat efficiencies'')')
             write(1,'(6e13.5)') qexttotper,qabstotper,qscatotper
          endif
-
+         
          write(1,'('' scattering matrix elements'')')
          if(normalizesm.eq.0) then
-            write(1,'('' theta    s11         s22         s33'',&
-                   &''         s44'',&
-                   &''         s21         s32         s43         s31'',&
-                   &''         s42         s41'')')
+            write(1,'('' theta    s11         s12         s13'',&
+                   &''         s14'',&
+                   &''         s21         s22         s23         s24'',&
+                   &''         s31         s32         s33         s34'',&
+                   &''         s41         s42         s43         s44'')')
             do i=1,numtheta
                thetad=theta1d+(theta2d-theta1d)*(i-1)/max(1.d0,dble(numtheta-1))
-               write(1,'(f8.2,10e12.4)') thetad,smt(1,1,i),smt(2,2,i),smt(3,3,i), &
-                     smt(4,4,i),smt(1,2,i),smt(2,3,i),smt(3,4,i),smt(1,3,i), &
-                     smt(2,4,i),smt(1,4,i)
+               write(1,'(f8.2,16e12.4)') thetad,smt(1,1,i),smt(2,1,i),smt(3,1,i), &
+                     smt(4,1,i),smt(1,2,i),smt(2,2,i),smt(3,2,i),smt(4,2,i), &
+                     smt(1,3,i),smt(2,3,i),smt(3,3,i),smt(4,3,i),smt(1,4,i), &
+                     smt(2,4,i),smt(3,4,i),smt(4,4,i)
+
+!         write(1,'('' scattering matrix elements'')')
+!         if(normalizesm.eq.0) then
+!            write(1,'('' theta    s11         s22         s33'',&
+!                   &''         s44'',&
+!                   &''         s21         s32         s43         s31'',&
+!                   &''         s42         s41'')')
+!            do i=1,numtheta
+!               thetad=theta1d+(theta2d-theta1d)*(i-1)/max(1.d0,dble(numtheta-1))
+!               write(1,'(f8.2,10e12.4)') thetad,smt(1,1,i),smt(2,2,i),smt(3,3,i), &
+!                     smt(4,4,i),smt(1,2,i),smt(2,3,i),smt(3,4,i),smt(1,3,i), &
+!                     smt(2,4,i),smt(1,4,i)
             enddo
          else
-            write(1,'('' theta    s11         s22/s11     s33'',&
-                   &''/s11     s44'',&
-                   &''/s11     s21/s11     s32/s11     s43/s11     s31'',&
-                   &''/s11     s42/s11     s41/s11'')')
+!This code was changed by David Mayericha and Thomas van Dijk
+            write(1,'('' theta    s11         s12/s11     s13'',&
+                   &''/s11     s14'',&
+                   &''/s11     s21/s11     s22/s11     s23/s11     s24'',&
+                   &''/s11     s31/s11     s32/s11     s33/s11     s34'',&
+                   &''/s11     s41/s11     s42/s11     s43/s11     s44/s11'')')
             do i=1,numtheta
                thetad=theta1d+(theta2d-theta1d)*(i-1)/max(1.d0,dble(numtheta-1))
                s11=smt(1,1,i)
-               write(1,'(f8.2,10e12.4)') thetad,smt(1,1,i),smt(2,2,i)/s11,smt(3,3,i)/s11, &
-                     smt(4,4,i)/s11,smt(1,2,i)/s11,smt(2,3,i)/s11,smt(3,4,i)/s11,smt(1,3,i)/s11, &
-                     smt(2,4,i)/s11,smt(1,4,i)/s11
+               write(1,'(f8.2,16e12.4)') thetad,smt(1,1,i),smt(2,1,i)/s11,smt(3,1,i)/s11, &
+                     smt(4,1,i)/s11,smt(1,2,i)/s11,smt(2,2,i)/s11,smt(3,2,i)/s11,smt(4,2,i)/s11, &
+                     smt(1,3,i)/s11,smt(2,3,i)/s11,smt(3,3,i)/s11,smt(4,3,i)/s11,smt(1,4,i)/s11, &
+                     smt(2,4,i)/s11,smt(3,4,i)/s11,smt(4,4,i)/s11
             enddo
+
+!original code here
+!            write(1,'('' theta    s11         s22/s11     s33'',&
+!                   &''/s11     s44'',&
+!                   &''/s11     s21/s11     s32/s11     s43/s11     s31'',&
+!                   &''/s11     s42/s11     s41/s11'')')
+!            do i=1,numtheta
+!               thetad=theta1d+(theta2d-theta1d)*(i-1)/max(1.d0,dble(numtheta-1))
+!               s11=smt(1,1,i)
+!               write(1,'(f8.2,10e12.4)') thetad,smt(1,1,i),smt(2,2,i)/s11,smt(3,3,i)/s11, &
+!                     smt(4,4,i)/s11,smt(1,2,i)/s11,smt(2,3,i)/s11,smt(3,4,i)/s11,smt(1,3,i)/s11, &
+!                     smt(2,4,i)/s11,smt(1,4,i)/s11
+!            enddo
          endif
          if(fixedorrandom.eq.1) then
             write(1,'('' scattering matrix expansion coefficients'')')

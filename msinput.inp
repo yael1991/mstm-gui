@@ -39,7 +39,7 @@ max_scattering_angle_deg
 number_scattering_angles
 181
 normalize_scattering_matrix
-1
+0
 gaussian_beam_constant
 0.0d0
 gaussian_beam_focal_point
